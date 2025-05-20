@@ -1,0 +1,65 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app import schemas, models
+
+router = APIRouter(
+    prefix="/users",
+    tags=["users"]
+)
+
+@router.get("/")
+def read_users():
+    return {"message": "Список пользователей"}
+
+@router.post("/", response_model=schemas.User)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Пользователь с таким именем уже существует")
+    new_user = models.User(username=user.username, role=user.role)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@router.get("/{user_id}/role")
+def get_user_role(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    return {
+        "userId": user.id,
+        "userName": user.username,
+        "userRole": user.role
+    }
+
+@router.get("/{user_id}/tasks", response_model=list[schemas.Task])
+def get_tasks_for_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    tasks = db.query(models.Task).filter(models.Task.assigned_to == user_id).all()
+    return tasks
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    db.delete(user)
+    db.commit()
+    return {"message": "Пользователь удалён"}
+
+@router.put("/{user_id}", response_model=schemas.User)
+def update_user(user_id: int, user_update: schemas.UserCreate, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    user.username = user_update.username
+    user.role = user_update.role
+    db.commit()
+    db.refresh(user)
+    return user
