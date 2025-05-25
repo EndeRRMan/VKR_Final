@@ -7,7 +7,6 @@ import enum
 class RoleEnum(str, enum.Enum):
     employee = "employee"
     manager = "manager"
-    admin = "admin"
 
 class StatusEnum(str, enum.Enum):
     open = "open"

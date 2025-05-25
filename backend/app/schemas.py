@@ -6,7 +6,6 @@ from enum import Enum
 class RoleEnum(str, Enum):
     employee = "employee"
     manager = "manager"
-    admin = "admin"
 
 # 📌 Статусы задач (должны совпадать с models.StatusEnum!)
 class TaskStatus(str, Enum):
