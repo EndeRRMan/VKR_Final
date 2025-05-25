@@ -1,40 +1,54 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
-from pydantic import Field
 
+# 🎭 Роли пользователей
 class RoleEnum(str, Enum):
     employee = "employee"
     manager = "manager"
     admin = "admin"
 
+# 📌 Статусы задач (должны совпадать с models.StatusEnum!)
+class TaskStatus(str, Enum):
+    open = "open"
+    in_progress = "in_progress"
+    completed = "completed"
+
+# 🧩 Пользователи
 class UserBase(BaseModel):
     username: str
-    role: str
+    role: RoleEnum
 
 class UserCreate(UserBase):
     pass
 
 class User(UserBase):
     id: int
-    class Config:
-        from_attributes = True
 
+    class Config:
+        from_attributes = True  # для Pydantic v2 (аналог orm_mode)
+
+# 🧩 Задачи
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
-    complexity: int = Field(default=1, ge=1, le=5)
-
+    complexity: int  # от 1 до 5
 
 class TaskCreate(TaskBase):
-    assigned_to: Optional[int] = None  # None → автоназначение
-    title: str
-    description: Optional[str] = None
-    complexity: int = Field(default=1, ge=1, le=5)
+    assigned_to: Optional[int] = None 
 
 class Task(TaskBase):
     id: int
-    status: str
+    status: TaskStatus
     assigned_to: Optional[int]
+
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+# 📍 Смена статуса задачи
+class TaskUpdateStatus(BaseModel):
+    new_status: TaskStatus
+
+# 📍 Переназначение задачи
+class ReassignTask(BaseModel):
+    new_user_id: int

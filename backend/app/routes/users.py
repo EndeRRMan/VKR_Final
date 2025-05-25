@@ -8,9 +8,10 @@ router = APIRouter(
     tags=["users"]
 )
 
-@router.get("/")
-def read_users():
-    return {"message": "Список пользователей"}
+@router.get("/", response_model=list[schemas.User])
+def read_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return users
 
 @router.post("/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):

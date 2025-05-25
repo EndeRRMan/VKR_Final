@@ -12,7 +12,7 @@ class RoleEnum(str, enum.Enum):
 class StatusEnum(str, enum.Enum):
     open = "open"
     in_progress = "in_progress"
-    closed = "closed"
+    completed = "completed"  # Правильное имя вместо "closed" / "created"
 
 class User(Base):
     __tablename__ = "users"
@@ -27,15 +27,14 @@ class User(Base):
 
 class Task(Base):
     __tablename__ = "tasks"
-    complexity = Column(Integer, default=1)  # от 1 до 5, например
-
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
     description = Column(String)
-    complexity = Column(Integer, default=1)  # Новое поле сложности задачи
+    complexity = Column(Integer, default=1)
     status = Column(Enum(StatusEnum), default=StatusEnum.open)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
     assigned_user = relationship("User", back_populates="tasks")
+
