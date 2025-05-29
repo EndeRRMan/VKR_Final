@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import schemas, models
@@ -63,4 +63,18 @@ def update_user(user_id: int, user_update: schemas.UserCreate, db: Session = Dep
     user.role = user_update.role
     db.commit()
     db.refresh(user)
+    return user
+
+@router.post(
+    "/login", 
+    response_model=schemas.User,
+    status_code=status.HTTP_200_OK
+)
+def login_user(login_in: schemas.LoginIn, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == login_in.username).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверное имя пользователя"
+        )
     return user

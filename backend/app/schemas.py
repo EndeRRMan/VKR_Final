@@ -2,6 +2,11 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from enum import Enum
 
+
+# 📍 Запрос для логина
+class LoginIn(BaseModel):
+    username: str
+
 # 🎭 Роли пользователей
 class RoleEnum(str, Enum):
     employee = "employee"
